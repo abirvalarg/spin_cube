@@ -110,13 +110,10 @@ fn main() {
 
         for triangle in cube {
             let v1: Vec3 = (triangle[1] - triangle[0]).into();
-            let v1_len = (v1.x * v1.x + v1.y * v1.y + v1.z * v1.z).sqrt();
-
             let v2: Vec3 = (triangle[2] - triangle[0]).into();
-            let v2_len = (v2.x * v2.x + v2.y * v2.y + v2.z * v2.z).sqrt();
-
             let n = v1.cross(v2);
-            let cos = -light.dot(n) / v1_len / v2_len;
+            let n_len = (n.x * n.x + n.y * n.y + n.z * n.z).sqrt();
+            let cos = -light.dot(n) / n_len;
 
             raster(&mut screen, triangle, (cos + 1.) / 2.);
         }
@@ -135,7 +132,7 @@ fn main() {
         if rotation_y >= TAU {
             rotation_y -= TAU;
         }
-        rotation_x += PI / 120.;
+        rotation_x += PI / 60.;
         if rotation_x >= TAU {
             rotation_x -= TAU;
         }
@@ -169,9 +166,12 @@ fn raster(screen: &mut Vec<Vec<(f32, f32)>>, triangle: [Vec4; 3], val: f32) {
         };
         for y in (y1.min(y2).round() as usize)..(y1.max(y2).round() as usize) {
             let real_x = x as f32 / screen[0].len() as f32 * 2. - 1.;
-            let real_y = y as f32 / screen.len() as f32 * 2. - 1.;
+            let real_y = 1. - (y as f32 / screen.len() as f32 * 2.);
             let z = surf.at_x_y(real_x, real_y);
-            if y < screen.len() && z < 1. && z < screen[y][x].1 {
+            if y >= screen.len() {
+                break;
+            }
+            if z < 1. && z < screen[y][x].1 {
                 screen[y][x] = (val, z);
             }
         }
