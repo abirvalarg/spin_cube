@@ -89,6 +89,7 @@ fn main() {
     let mut start_time;
     let mut rotation_y = 0.;
     let mut rotation_x = 0.;
+    let mut rotation_z = 0.;
     let cam = Mat4::from_translation(ultraviolet::Vec3::new(0., 0., -5.));
     let light = Vec3::new(-0.4, -0.4, -1.).normalized();
 
@@ -104,7 +105,7 @@ fn main() {
 
         let proj = ultraviolet::projection::perspective_gl(PI / 3., size.width as f32 / size.height as f32, 0.1, 100.);
 
-        let rot_mat = Mat4::from_rotation_y(rotation_y) * Mat4::from_rotation_x(rotation_x);
+        let rot_mat = Mat4::from_rotation_y(rotation_y) * Mat4::from_rotation_x(rotation_x) * Mat4::from_rotation_z(rotation_z);
 
         let cube = cube.map(|triangle| triangle.map(|vert| proj * cam * rot_mat * vert));
 
@@ -116,6 +117,8 @@ fn main() {
             let cos = -light.dot(n) / n_len;
 
             raster(&mut screen, triangle, (cos + 1.) / 2.);
+
+            // break;
         }
 
         for (idx, line) in screen.into_iter().enumerate() {
@@ -135,6 +138,10 @@ fn main() {
         rotation_x += PI / 60.;
         if rotation_x >= TAU {
             rotation_x -= TAU;
+        }
+        rotation_z += PI / 120.;
+        if rotation_z >= TAU {
+            rotation_z -= TAU;
         }
         let elapsed = start_time.elapsed();
         if elapsed < delay {
@@ -157,7 +164,7 @@ fn raster(screen: &mut Vec<Vec<(f32, f32)>>, triangle: [Vec4; 3], val: f32) {
     let f2 = Lin::from((screen_coords[0], screen_coords[1]));
     let f3 = Lin::from((screen_coords[1], screen_coords[2]));
     let surf = Surface::from(triangle);
-    for x in (screen_coords[0][0].round() as usize)..(screen_coords[2][0].round() as usize) {
+    for x in (screen_coords[0][0].ceil() as usize)..(screen_coords[2][0].ceil() as usize) {
         let y1 = f1.at(x as f32);
         let y2 = if (x as f32) < screen_coords[1][0] {
             f2.at(x as f32)
